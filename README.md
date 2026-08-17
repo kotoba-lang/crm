@@ -63,8 +63,16 @@ lead-scoring, or funnel-analytics logic per actor.
   attribution, and exit-stage sub-classification (e.g. won vs lost)
   beyond whatever exit-stage keywords the caller's own pipeline encodes.
 
+## Operator quickstart
+
+[`docs/operator-quickstart.md`](docs/operator-quickstart.md) walks all four
+namespaces end to end with real, executed outputs, and covers the four places
+these functions return `nil` ("no opinion") instead of guessing — which is what
+a consuming governor most often gets wrong.
+
 ## Test
 
 ```bash
-clojure -M:test
+clojure -M:test    # 21 tests, 89 assertions
+clojure -M:lint    # errors: 0, warnings: 0
 ```
