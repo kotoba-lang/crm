@@ -95,3 +95,28 @@
     (is (re-find #"time-in-stage" (:note c)))
     (is (re-find #"cohort-over-time" (:note c)))
     (is (re-find #"multi-touch attribution" (:note c)))))
+
+(deftest reached-counts-prefers-the-current-stage-over-a-recorded-reached-stage
+  ;; No entity in the fixture above carries BOTH an ordered :stage and a
+  ;; :reached-stage, so which of the two wins is unpinned: swap them and
+  ;; every assertion above stays green. :stage is the newer fact -- an
+  ;; entity still in the pipeline is where it is now; :reached-stage is
+  ;; only the caller's record of where it stood when it exited. Reading
+  ;; them in the wrong order credits an entity backwards, which shows up
+  ;; on a dashboard as a funnel that lost people it did not lose.
+  (let [advanced [{:stage :sql :reached-stage :lead}]
+        reached  (funnel/reached-counts advanced stages)]
+    (is (= 1 (:sql reached)) "the current stage is the truth")
+    (is (= 1 (:mql reached)) "and so is every rank below it")
+    (is (= 0 (:customer reached)))))
+
+(deftest reached-counts-excludes-an-unrecognized-reached-stage-rather-than-guessing
+  ;; The docstring says an entity whose :reached-stage is not itself a valid
+  ;; ordered stage is excluded "rather than guessed". The existing exclusion
+  ;; test omits :reached-stage entirely, which short-circuits before the
+  ;; rank lookup ever happens -- so a PRESENT but unrecognized value is
+  ;; never covered, and defaulting it to rank 0 keeps the suite green while
+  ;; inventing a funnel entry out of a typo.
+  (is (= {:subscriber 0 :lead 0 :mql 0 :sql 0 :customer 0}
+         (funnel/reached-counts [{:stage :churned :reached-stage :not-a-stage}]
+                                stages))))

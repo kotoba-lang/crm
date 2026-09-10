@@ -7,9 +7,9 @@ namespaces into an actor's governor or dashboard**, and the thing that can go
 wrong is not an outage: it is a governor that reads one of these functions'
 `nil` as a zero and passes a materially wrong number through unchallenged.
 
-Everything below was executed against commit `a648f40` (`main`, and the
-`manifest/west.yml` pin, all three in agreement) on 2026-08-17. Outputs are
-pasted as they were printed, not as they are expected to look. Every example
+Everything below was executed against commit `e7995bd` (`main`) on
+2026-09-10. Outputs are pasted as they were printed, not as they are expected
+to look. Every example
 fixes its own `:as-of-date`, so re-running these gives the same numbers on any
 later day.
 
@@ -20,7 +20,7 @@ clojure -M:test
 ```
 
 ```
-Ran 21 tests containing 89 assertions.
+Ran 32 tests containing 165 assertions.
 0 failures, 0 errors.
 ```
 
@@ -29,21 +29,48 @@ clojure -M:lint
 ```
 
 ```
-linting took 987ms, errors: 0, warnings: 0
+linting took 767ms, errors: 0, warnings: 0
 ```
 
-(The duration is whatever your machine is doing — this repo linted in 987ms and
-3478ms on two consecutive runs on the same loaded workstation. `errors: 0,
+(The duration is whatever your machine is doing — this repo has linted in
+767ms, 987ms and 3478ms on the same loaded workstation. `errors: 0,
 warnings: 0` is the part that is a claim.)
 
-**If either is red before you have changed anything, stop and fix that first.**
-You cannot judge your own change against a baseline you have not seen green.
+Then the same suite on the second host. Every namespace here is `.cljc`, and a
+`:cljs` reader-conditional branch is structurally invisible from the JVM — so
+the run above cannot tell a portable library from one that only happens to work
+where you ran it:
+
+```bash
+nbb --classpath "src:test" test/run_portable.cljs
+```
+
+```
+  kotoba.crm.funnel-test	tests=7 assertions=41
+  kotoba.crm.leadscore-test	tests=10 assertions=34
+  kotoba.crm.pipeline-test	tests=6 assertions=64
+  kotoba.crm.revrec-test	tests=9 assertions=26
+PORTABLE-HOST	nbb (ClojureScript)
+SCANNED	4/4 portable test namespaces on disk (0 excluded by name)
+RAN	32 tests, 165 assertions
+portable-check: OK
+```
+
+Read the `SCANNED` line, not just the exit code. This runner exits `2`
+(`REFUSED`) rather than `0` when it cannot vouch for what it covered, because
+a run that quietly covers less than `test/` contains otherwise prints the same
+"0 failures" as a run that really passed.
+
+**If any of the three is red before you have changed anything, stop and fix
+that first.** You cannot judge your own change against a baseline you have not
+seen green.
 
 ## 2. Depend on it
 
 The library has **zero runtime dependencies** (`:deps {}` in `deps.edn`; the
 test-runner and clj-kondo are alias-only). Verified, not assumed: a fresh
-`git clone` outside this workspace runs the same 21 tests / 89 assertions green.
+`git clone` outside this workspace runs the same 32 tests / 165 assertions
+green, on both hosts.
 
 In-workspace consumers use a relative `:local/root` — this is the real form,
 copied from the two live consumers:
@@ -258,7 +285,20 @@ standard-setters and must keep citing them).
 | A lead scores lower than expected | unrecognized event kinds — call `unrecognized-events` |
 | A legal-looking transition is rejected | the `from` stage is already terminal (last ordered stage or an exit), which accepts nothing |
 
-Before changing any source file, run `clojure -M:test` and note the counts. The
+Before changing any source file, run **both** hosts and note the counts. The
 suite is one test namespace per source namespace; a change that breaks an
 invariant should turn a specific one of them red. If your change makes nothing
 red, you have not tested it yet.
+
+Running only `clojure -M:test` is not enough, and this is measured rather than
+argued: on 2026-09-10, dropping cent-rounding from `revrec/round-cents`'s
+`:cljs` branch left the JVM suite green at 32/32 and turned the nbb run red;
+dropping it from the `:clj` branch did the exact reverse. Each host is blind to
+exactly the half the other one sees.
+
+Which invariant each namespace actually holds is not a matter of reading the
+test names, either. The superproject's `scripts/maturity-loop/mutations.edn`
+carries eleven breakages of this library — each one checked by applying it and
+watching the named test go red — so `nbb scripts/maturity-loop/run.cljs --only
+crm` re-answers "do these tests still bite?" instead of "are they still
+green?" 

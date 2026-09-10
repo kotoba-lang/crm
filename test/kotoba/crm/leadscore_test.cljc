@@ -77,3 +77,51 @@
     (is (= :fixed-weighted-point (:model c)))
     (is (= leadscore/point-values (:point-values c)))
     (is (string? (:note c)))))
+
+(deftest mismatch-flags-an-understated-score-too
+  ;; Same gap as revrec's: every existing assertion proposes MORE than the
+  ;; truth, so `abs*` is never exercised on its negative side. A governor
+  ;; that admits a stage transition on the strength of a score is fooled in
+  ;; both directions -- an understated score is how a lead gets held back
+  ;; without anyone being told why.
+  (let [history [{:kind :form-fill} {:kind :demo-request}]   ; recomputes to 30
+        m (leadscore/mismatch history 10)]
+    (is (some? m))
+    (is (= 30 (:recomputed m)))
+    (is (= 10 (:proposed m)))
+    (is (= -20 (:delta m)) "delta keeps its sign; only the test is absolute")
+    (testing "and the tolerance boundary is exclusive on the low side too"
+      (is (nil? (leadscore/mismatch history 28 2)))
+      (is (some? (leadscore/mismatch history 27 2))))))
+
+(deftest decay-never-lifts-an-event-above-its-full-weight
+  ;; The docstring says an event dated AFTER as-of-date "counts as 'just
+  ;; happened', full weight". Every existing decay assertion dates the event
+  ;; at or before as-of-date, so the lower clamp on elapsed days is never
+  ;; reached. Remove it and 0.5^(negative) is GREATER than one: a single
+  ;; event dated into the future multiplies its own weight without bound,
+  ;; which is exactly how a scored gate gets gamed rather than merely
+  ;; miscomputed.
+  (let [future-event [{:kind :demo-request :date {:year 2027 :month 1 :day 1}}]]
+    (is (= 20 (leadscore/recompute-score
+               future-event
+               {:as-of-date {:year 2026 :month 1 :day 1}
+                :decay-half-life-days 30}))
+        "a future-dated event is worth its full point value, never more")
+    (testing "no recognized event can ever score above the undecayed sum"
+      (is (<= (leadscore/recompute-score future-event
+                                         {:as-of-date {:year 2026 :month 1 :day 1}
+                                          :decay-half-life-days 30})
+              (leadscore/recompute-score future-event))))))
+
+(deftest a-decayed-score-is-actually-rounded-to-a-whole-point
+  ;; The existing decay assertions land on exact powers of one half (full
+  ;; weight, half weight), so the rounding step never changes the answer
+  ;; and has never been observed. Half a half-life does not: 20 × 2^-0.5
+  ;; is 14.142…, and a lead score is a whole number of points, not a
+  ;; float a dashboard will render with fifteen digits.
+  (let [history [{:kind :demo-request :date {:year 2026 :month 1 :day 1}}]
+        score (leadscore/recompute-score
+               history {:as-of-date {:year 2026 :month 1 :day 16}
+                        :decay-half-life-days 30})]
+    (is (= 14 score) "20 × 2^-0.5 = 14.142…, rounded to 14")))
