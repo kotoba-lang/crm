@@ -72,7 +72,30 @@ a consuming governor most often gets wrong.
 
 ## Test
 
+Two hosts, because every namespace here is `.cljc` and three of them carry a
+reader conditional (`revrec/round-cents`, `leadscore/decay-multiplier`,
+`leadscore/round-points`). A `:cljs` branch is structurally invisible from the
+JVM, so a suite with one host cannot tell a portable library from one that
+only happens to work where it is run.
+
 ```bash
-clojure -M:test    # 21 tests, 89 assertions
-clojure -M:lint    # errors: 0, warnings: 0
+clojure -M:test                                    # JVM       — 32 tests, 165 assertions
+nbb --classpath "src:test" test/run_portable.cljs  # nbb/cljs  — 32 tests, 165 assertions
+clojure -M:lint                                    # errors: 0, warnings: 0
+```
+
+The portable runner exits `2` (`REFUSED`), not `0`, when it cannot vouch for
+what it covered — a run that quietly covers less than `test/` contains
+otherwise prints the same "0 failures" as a run that really passed. What it
+buys is measured, in both directions: dropping cent-rounding on the `:cljs`
+side only leaves `clojure -M:test` green and turns the nbb run red; dropping
+it on the `:clj` side does the reverse. Neither host alone discriminates.
+
+These invariants are held to the standard the workspace applies to gates —
+each one was checked by breaking the implementation and watching the named
+test go red. The mutations are registered in the superproject's
+`scripts/maturity-loop/mutations.edn` so the check does not decay silently:
+
+```bash
+nbb scripts/maturity-loop/run.cljs --only crm      # run from the superproject
 ```
