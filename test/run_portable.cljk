@@ -1,6 +1,6 @@
 ;; run_portable.cljs — run this suite on a second host.
 ;;
-;;   nbb --classpath "src:test" test/run_portable.cljs
+;;   nbb --classpath "src:test" test/run_portable.cljk
 ;;
 ;; Why this file exists. Every namespace in src/ is .cljc, the README calls
 ;; the library "portable .cljc", and deps.edn shipped exactly one runner:
