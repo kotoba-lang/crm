@@ -16,7 +16,7 @@ later day.
 ## 1. Verify the checkout (about 8 seconds)
 
 ```bash
-clojure -M:test
+kbb -M:test
 ```
 
 ```
@@ -25,7 +25,7 @@ Ran 32 tests containing 165 assertions.
 ```
 
 ```bash
-clojure -M:lint
+kbb -M:lint
 ```
 
 ```
@@ -42,7 +42,7 @@ the run above cannot tell a portable library from one that only happens to work
 where you ran it:
 
 ```bash
-nbb --classpath "src:test" test/run_portable.cljk
+kbb --backend sci --classpath "src:test" test/run_portable.cljk
 ```
 
 ```
@@ -89,7 +89,7 @@ io.github.kotoba-lang/crm {:git/url "https://github.com/kotoba-lang/crm.git"
 Verified end to end from an empty directory:
 
 ```bash
-clojure -Sdeps '{:deps {io.github.kotoba-lang/crm {:git/url "https://github.com/kotoba-lang/crm.git" :git/sha "a648f40c5c272e9bfba79f6b1407bb43f7402d16"}}}' \
+kbb -Sdeps '{:deps {io.github.kotoba-lang/crm {:git/url "https://github.com/kotoba-lang/crm.git" :git/sha "a648f40c5c272e9bfba79f6b1407bb43f7402d16"}}}' \
   -M -e "(require (quote [kotoba.crm.leadscore :as l])) (println :git-dep-ok (l/recompute-score [{:kind :demo-request}]))"
 ```
 
@@ -290,7 +290,7 @@ suite is one test namespace per source namespace; a change that breaks an
 invariant should turn a specific one of them red. If your change makes nothing
 red, you have not tested it yet.
 
-Running only `clojure -M:test` is not enough, and this is measured rather than
+Running only `kbb -M:test` is not enough, and this is measured rather than
 argued: on 2026-09-10, dropping cent-rounding from `revrec/round-cents`'s
 `:cljs` branch left the JVM suite green at 32/32 and turned the nbb run red;
 dropping it from the `:clj` branch did the exact reverse. Each host is blind to
@@ -299,6 +299,6 @@ exactly the half the other one sees.
 Which invariant each namespace actually holds is not a matter of reading the
 test names, either. The superproject's `scripts/maturity-loop/mutations.edn`
 carries eleven breakages of this library — each one checked by applying it and
-watching the named test go red — so `nbb scripts/maturity-loop/run.cljs --only
+watching the named test go red — so `kbb --backend sci scripts/maturity-loop/run.cljk --only
 crm` re-answers "do these tests still bite?" instead of "are they still
 green?" 
