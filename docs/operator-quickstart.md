@@ -42,7 +42,7 @@ the run above cannot tell a portable library from one that only happens to work
 where you ran it:
 
 ```bash
-nbb --classpath "src:test" test/run_portable.cljs
+nbb --classpath "src:test" test/run_portable.cljk
 ```
 
 ```

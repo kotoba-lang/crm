@@ -80,7 +80,7 @@ only happens to work where it is run.
 
 ```bash
 clojure -M:test                                    # JVM       — 32 tests, 165 assertions
-nbb --classpath "src:test" test/run_portable.cljs  # nbb/cljs  — 32 tests, 165 assertions
+nbb --classpath "src:test" test/run_portable.cljk  # nbb/cljs  — 32 tests, 165 assertions
 clojure -M:lint                                    # errors: 0, warnings: 0
 ```
 
