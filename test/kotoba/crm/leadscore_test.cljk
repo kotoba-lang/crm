@@ -1,5 +1,5 @@
 (ns kotoba.crm.leadscore-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [kotoba.crm.leadscore :as leadscore]))
 
 (deftest point-values-are-the-documented-spec

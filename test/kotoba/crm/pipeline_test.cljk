@@ -1,5 +1,5 @@
 (ns kotoba.crm.pipeline-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [kotoba.crm.pipeline :as pipeline]))
 
 (def stages [:prospecting :qualification :proposal :negotiation :closed-won])

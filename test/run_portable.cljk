@@ -37,7 +37,7 @@
   (:require ["fs" :as fs]
             ["path" :as path]
             [clojure.string :as str]
-            [clojure.test :as t]
+            [kotoba.test :as t]
             [kotoba.crm.funnel-test]
             [kotoba.crm.leadscore-test]
             [kotoba.crm.pipeline-test]
