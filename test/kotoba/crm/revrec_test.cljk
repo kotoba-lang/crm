@@ -1,5 +1,5 @@
 (ns kotoba.crm.revrec-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [kotoba.crm.revrec :as revrec]))
 
 (def sub

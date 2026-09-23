@@ -1,5 +1,5 @@
 (ns kotoba.crm.funnel-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [kotoba.crm.funnel :as funnel]))
 
 ;; A marketing/sales-style lifecycle funnel: subscriber -> lead -> mql ->
