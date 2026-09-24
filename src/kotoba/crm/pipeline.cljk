@@ -9,7 +9,7 @@
   A pipeline is just an ordered vector of stage keywords plus a set of
   `exit-stages` reachable from ANY stage (e.g. `:closed-lost`). This is
   intentionally pure and storage-agnostic: no entity shapes, no I/O."
-  (:require [clojure.set :as set]))
+  (:require [kotoba.lang.coll :as set]))
 
 (defn stage-rank
   "index of `stage` within `ordered-stages`, or nil if absent. Plain
