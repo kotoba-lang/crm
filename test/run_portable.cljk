@@ -36,7 +36,7 @@
 (ns run-portable
   (:require ["fs" :as fs]
             ["path" :as path]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [kotoba.test :as t]
             [kotoba.crm.funnel-test]
             [kotoba.crm.leadscore-test]
